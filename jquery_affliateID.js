@@ -31,7 +31,7 @@
             
             /* If window is less than or equal to 752, run logic */
             if (windowWidth <= 752) {
-	            /* do stuff */
+	            /* Logic for Affiliates should be nested here if mobile numbers differ from desktop */
 	            console.log('I am in mobile UI!!!');
             } else {
             	/* Logic for Affiliates with the DIFFERENT phone number */

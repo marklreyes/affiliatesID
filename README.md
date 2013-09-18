@@ -1,6 +1,6 @@
 AffiliateID Phone No. Plugin
 
-Phone numbers are determined by an affiliate parameter in the URL then updated accordingly. Default phone number should rest within the markup.
+Phone numbers are determined by an affiliate parameter in the URL then updated accordingly. Default phone number should rest within the markup. If custom phone numbers are also intended for mobile devices
 
 DEPENDENCIES:
 - jQuery.js

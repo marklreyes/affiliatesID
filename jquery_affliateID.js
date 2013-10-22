@@ -3,71 +3,82 @@
 
         return this.filter('span.affiliatePhone').each(function () {
 
-            /* Check for the span affiliate HTML element and store it as a value for future use */
-            var affiliateNode = $('span.affiliatePhone');
+            /* URL Parameter to reference a match for later */
+            var param1var = getQueryVariable("Affiliateid");
 
-            /* Affiliate ID objects for multiple phone numbers - should be true to run logic */
-			var BPN_Generic = window.location.search.indexOf('AffiliateID=BPN_Generic') > -1;	
-			var BPN_Tradename = window.location.search.indexOf('AffiliateID=BPN_Tradename') > -1;			
-			var Google_Generic = window.location.search.indexOf('AffiliateID=Google_Generic') > -1;			
-			var Google_Generic_RLSA = window.location.search.indexOf('AffiliateID=Google_Generic_RLSA') > -1;			
-			var Google_Tradename = window.location.search.indexOf('AffiliateID=Google_Tradename') > -1;			
-			var MSN_Generic = window.location.search.indexOf('AffiliateID=MSN_Generic') > -1;	
-			var MSN_Tradename = window.location.search.indexOf('AffiliateID=MSN_Tradename') > -1;	
+			/* Check for the hidden affiliate ID field if param1var is empty */
+			if (typeof(param1var) === 'undefined' || param1var == '') {
+				param1var = $('#AffiliateId').val();
+			}
 			
-            /* Affiliate ID objects for one unique phone number - should be true to run logic */
-            var GDNtext_rmktg = window.location.search.indexOf('AffiliateID=GDNtext_rmktg') > -1;
-            var AOL_BT = window.location.search.indexOf('AffiliateID=AOL_BT') > -1;
-            var OwnIQ_BT = window.location.search.indexOf('AffiliateID=OwnIQ_BT') > -1;
-            var XaxisRTB_DT = window.location.search.indexOf('AffiliateID=XaxisRTB_DT') > -1;
-            var XaxisRTB_SR = window.location.search.indexOf('AffiliateID=XaxisRTB_SR');
-            var XaxisRTB_SR_EI = window.location.search.indexOf('AffiliateID=XaxisRTB_SR_EI') > -1;
-            var Generic_fb = window.location.search.indexOf('AffiliateID=Generic_fb') > -1;
-            var C_FarmerGrp_fb = window.location.search.indexOf('AffiliateID=C_FarmerGrp_fb') > -1;
-            var BASCJ_fb = window.location.search.indexOf('AffiliateID=BASCJ_fb') > -1;			
+			/* Only move forward if there is an affiliate ID to compare against the phone number dataset */
+			if (param1var != '') {
+				
+	            var domain = encodeURIComponent(document.domain);
+	            var proxyURL = "http://" + domain + "/common/resa_proxy.php";
+	            var referer = encodeURIComponent(document.referrer);
 
-            /* Window object's width needs to be less than or equal to 752 */
-            var windowWidth = $(window).width();
-            
-            /* If window is less than or equal to 752, run logic */
-            if (windowWidth <= 752) {
-	            /* Logic for Affiliates should be nested here if mobile numbers differ from desktop */
-	            console.log('I am in mobile UI!!!');
-            } else {
-            	/* Logic for Affiliates with the DIFFERENT phone number */
-	            if (BPN_Generic == true) {
-	                $(affiliateNode).text('1.800.254.BPN_Generic');
-	            }
-	
-	            if (BPN_Tradename == true) {
-	                $(affiliateNode).text('1.800.254.BPN_Tradename');
-	            }
-	
-	            if (Google_Generic == true) {
-	                $(affiliateNode).text('1.800.254.Google_Generic');
-	            }
-	            if (Google_Generic_RLSA == true) {
-	                $(affiliateNode).text('1.800.254.Google_Generic_RLSA');
-	            }
-	
-	            if (Google_Tradename == true) {
-	                $(affiliateNode).text('1.800.254.Google_Tradename');
-	            }
-	
-	            if (MSN_Generic == true) {
-	                $(affiliateNode).text('1.800.254.MSN_Generic');
-	            }
-	
-	            if (MSN_Tradename == true) {
-	                $(affiliateNode).text('1.800.254.MSN_Tradename');
-	            }
-	            
-	            /* Logic for Affiliates with the SAME phone number */
-	            if ((GDNtext_rmktg == true) || (AOL_BT == true) || (OwnIQ_BT == true) || (XaxisRTB_DT == true) || (XaxisRTB_SR == true) || (XaxisRTB_SR_EI == true) || (Generic_fb == true) || (C_FarmerGrp_fb == true) || (BASCJ_fb == true)) {
-	                $(affiliateNode).text('1.800.254.SameSame');
-	            }	            
+	            $.ajax({
+	                type: "GET",
+	                url: proxyURL + "?RESAType=content",
+	                data: "PageDomain=GLOBAL&PageLocation=GLOBAL" + "&Referer=" + referer,
+	                success: function (data) {
+	                    var json = $.parseJSON(data);
 
-            }
+	                    /* Reference a device */
+	                    $.browser.device = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()));               
+
+	                    /* Check for the span affiliate HTML element and store it as a value for future use */
+	                    var affiliateNode = $('span.affiliatePhone');
+
+	                    for (var jsondat in json) {
+
+	                        /* Identify the content region from CJC, affiliate_numbers */
+	                        var contentRegionID = json[jsondat].ContentRegionID;
+
+	                        /* If it is a mobile device, run mobile number logic, else run desktop logic */
+	                        if ($.browser.device === true) {
+
+	                            /* Check if the appropriate content region exists to run affiliate number logic */
+	                            if (contentRegionID == 'affiliate_mobnumbers') {
+
+	                                /* Key:values from CJC */
+	                                var phoneMobileSet = $.parseJSON(json[jsondat].Content);
+
+	                                /* Loop through the phone number collection to access its keys and values */
+	                                $.each(phoneMobileSet, function (key, element) {
+
+	                                    /* if the key matches param1var, update affiliateNode's HTML value with the key's value */
+	                                    if (param1var === key) {
+
+	                                        /* Update the HTML phone number */
+	                                        $(affiliateNode).text(element);
+	                                    }
+	                                });
+	                            }
+	                        } else {
+	                            /* Check if the appropriate content region exists to run affiliate number logic. */
+	                            if (contentRegionID == 'affiliate_numbers') {
+
+	                                /* Key:values from CJC */
+	                                var phoneCollection = $.parseJSON(json[jsondat].Content);
+
+	                                /* Loop through the phone number collection to access its keys and values */
+	                                $.each(phoneCollection, function (key, element) {
+
+	                                    /* if the key matches param1var, update affiliateNode's HTML value with the key's value */
+	                                    if (param1var === key) {
+
+	                                        /* Update the HTML phone number */
+	                                        $(affiliateNode).text(element);
+	                                    }
+	                                });
+	                            }
+	                        }
+	                    }
+	                }
+	            });
+			}
         });
     };
 }(jQuery));
@@ -76,3 +87,15 @@ $(document).ready(function () {
     /* Call the plugin */
     $("span.affiliatePhone").affUpdate();
 });
+
+/* Function to query the URL for a specific parameter */
+function getQueryVariable(variable) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+            return pair[1];
+        }
+    }
+}
